@@ -62,7 +62,8 @@ public class Button extends UIElement {
 		super.draw();
 
 		if(text != null)
-			Text.drawString(text, x, y, hover ? Color.white : Color.gray, "SYSTEM");
+			Text.drawString(text, x, y,
+					hover ? (enabled ? Color.white : Color.gray) : (enabled ? Color.gray : Color.darkGray), "SYSTEM");
 	}
 	
 	@Override
@@ -70,7 +71,8 @@ public class Button extends UIElement {
 		super.draw(x, y);
 
 		if(text != null)
-			Text.drawString(text, x, y, hover ? Color.white : Color.gray, "SYSTEM");
+			Text.drawString(text, x, y,
+					hover ? (enabled ? Color.white : Color.gray) : (enabled ? Color.gray : Color.darkGray), "SYSTEM");
 	}
 	
 	public String getText() {

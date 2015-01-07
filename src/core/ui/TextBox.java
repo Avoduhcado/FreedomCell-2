@@ -36,6 +36,11 @@ public class TextBox extends UIElement {
 			text.get(i).draw(x, y + getCurrentHeight(i), fontFace);
 	}
 	
+	@Override
+	public void updateBox() {
+		box = new Rectangle2D.Double(x, y, getWidth(), getHeight());
+	}
+	
 	public float getWidth() {
 		float width = 0;
 		for(TextLine t : text) {
@@ -63,5 +68,40 @@ public class TextBox extends UIElement {
 		}
 		
 		return height;
+	}
+	
+	public String getText() {
+		String fullText = "";
+		for(TextLine t : text) {
+			fullText += t.getText();
+		}
+		return fullText;
+	}
+	
+	public String[] getTextByLine() {
+		String[] lineText = new String[text.size()];
+		for(int t = 0; t<lineText.length; t++) {
+			lineText[t] = text.get(t).getText();
+		}
+		
+		return lineText;
+	}
+	
+	public void setText(String text) {
+		this.text.clear();
+		
+		String[] temp = text.split(";");
+		for(String t : temp)
+			this.text.add(new TextLine(t));
+		
+		updateBox();
+	}
+	
+	public void addText(String text) {
+		String[] temp = text.split(";");
+		for(String t : temp)
+			this.text.add(new TextLine(t));
+		
+		updateBox();
 	}
 }

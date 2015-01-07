@@ -1,5 +1,6 @@
 package core.network;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -7,9 +8,12 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
+import core.Theater;
 import core.network.packets.CardMovePacket;
 import core.network.packets.ConnectedUsersPacket;
 import core.network.packets.GreetPacket;
+import core.setups.GameSetup;
+import core.setups.ServerLobby;
 import core.setups.Stage;
 
 public class Client extends Thread {
@@ -17,7 +21,7 @@ public class Client extends Thread {
 	private String hostName = "127.0.0.1";
 	private int portNumber = 34336;
 	private String clientName = "Client";
-	private String[] playerNames = new String[]{" ", " ", " ", " "};
+	private String[] playerNames = new String[4];
 	private int seatNumber = -1;
 	private Socket socket = null;
 	private volatile boolean listening = true;
@@ -25,13 +29,13 @@ public class Client extends Thread {
 	private ObjectInputStream in;
 	private ObjectOutputStream out;
 	
-	private volatile Stage stage;
+	private volatile GameSetup setup;
 		
-	public Client(String hostName, int port, String name, Stage stage) {
+	public Client(String hostName, int port, String name, GameSetup setup) {
 		this.hostName = hostName;
 		this.portNumber = port;
 		this.clientName = name;
-		this.stage = stage;
+		this.setup = setup;
 	}
 	
 	public void run() {
@@ -67,10 +71,12 @@ public class Client extends Thread {
 			}
 		}
 		
-		// Send client name to server to greet
-		sendData(new GreetPacket(clientName));
-		
-		receiveMessage();
+		if(listening) {
+			// Send client name to server to greet
+			sendData(new GreetPacket(clientName));
+			
+			receiveMessage();
+		}
 	}
 	
 	public void terminate() {
@@ -92,6 +98,10 @@ public class Client extends Thread {
 			} catch (SocketException e) {
 				listening = false;
 				break;
+			} catch (EOFException e) {
+				listening = false;
+				connected = false;
+				break;
 			} catch (IOException e) {
 				System.err.println("Couldn't get I/O for the connection to " + hostName);
 				e.printStackTrace();
@@ -100,8 +110,9 @@ public class Client extends Thread {
 				e.printStackTrace();
 			}
 		}
-		
+				
 		if(!listening && !socket.isClosed()) {
+			System.out.println("Socket closed");
 			connected = false;
 			try {
 				socket.close();
@@ -127,27 +138,23 @@ public class Client extends Thread {
 		}
 	}
 	
-	// TODO Add custom name colors
-	public void sendChat(String message) {
-		try {
-			out.writeObject(clientName + ": " + message);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
 	public void parseData(Packet packet) {
 		if(packet instanceof CardMovePacket) {
-			stage.getTable().moveCard(
+			((Stage) setup).getTable().moveCard(
 					((CardMovePacket) packet).getToMove(), ((CardMovePacket) packet).getMoveTo());
 		} else if(packet instanceof ConnectedUsersPacket) {
 			if(this.seatNumber == -1) {
 				this.seatNumber = ((ConnectedUsersPacket) packet).getSeat();
-				stage.setSeat(seatNumber);
 			}
 			setPlayerNames(((ConnectedUsersPacket) packet).getClientNames());
+			if(setup instanceof ServerLobby) {
+				((ServerLobby) setup).setConnectedUsers(playerNames);
+			}
 		} else if(packet instanceof GreetPacket) {
-			stage.setTable(((GreetPacket) packet).getTable());
+			Theater.get().swapSetup(new Stage(this));
+			this.setup = Theater.get().getSetup();
+			((Stage) setup).setSeat(seatNumber);
+			((Stage) setup).setTable(((GreetPacket) packet).getTable());
 		}
 	}
 	
@@ -191,8 +198,15 @@ public class Client extends Thread {
 	
 	public void setPlayerNames(String[] names) {
 		for(int x = 0; x<playerNames.length; x++) {
-			if(names[x] != null)
-				playerNames[x] = names[x];
+			//if(names[x] != null)
+			playerNames[x] = names[x];
+		}
+	}
+	
+	public void setSetup(GameSetup setup) {
+		this.setup = setup;
+		if(setup instanceof Stage) {
+			((Stage) setup).setSeat(seatNumber);
 		}
 	}
 	

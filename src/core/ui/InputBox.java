@@ -87,10 +87,10 @@ public class InputBox extends UIElement {
 				case 1:
 					if(!isModifierKey()) {
 						// Check for backspace and if text can be removed
-						if(Keyboard.getEventKey() == Keyboard.KEY_BACK && text.length() > 0) {
+						if(Keyboard.getEventKey() == Keyboard.KEY_BACK && !text.isEmpty()) {
 							// Remove the last character from text
 							text = (String)text.subSequence(0, text.length() - 1);
-						} else if(text.length() <= textLimit) {
+						} else if(text.length() <= textLimit && Keyboard.getEventKey() != Keyboard.KEY_BACK) {
 							// If the user is pasting text
 							if(Keyboard.getEventKey() == Keyboard.KEY_V && (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))) {
 								paste();
@@ -203,10 +203,11 @@ public class InputBox extends UIElement {
 	
 	@Override
 	public void updateBox() {
-		if(text.length() > 0)
+		if(!text.isEmpty()) {
 			box = new Rectangle2D.Double(x, y, Text.getWidth(text, "SYSTEM"), Text.getHeight(text, "SYSTEM"));
-		else
+		} else {
 			box = new Rectangle2D.Double(x, y, 15f, 15f);
+		}
 	}
 	
 }

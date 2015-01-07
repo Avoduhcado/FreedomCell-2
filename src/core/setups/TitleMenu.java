@@ -6,12 +6,12 @@ import core.Camera;
 import core.Theater;
 import core.audio.Ensemble;
 import core.audio.Track;
-import core.network.Server;
 import core.render.DrawUtils;
 import core.render.textured.Image;
 import core.ui.Button;
 import core.ui.ButtonGroup;
 import core.ui.overlays.OptionsMenu;
+import core.ui.overlays.ServerMenu;
 
 public class TitleMenu extends GameSetup {
 
@@ -21,6 +21,8 @@ public class TitleMenu extends GameSetup {
 	private ButtonGroup buttonGroup;
 	/** The options menu */
 	private OptionsMenu optionsMenu;
+	/** Server menu */
+	private ServerMenu serverMenu;
 	
 	private Vector4f fill = new Vector4f(1f, 1f, 1f, 0f);
 	private boolean fading = true;
@@ -39,8 +41,7 @@ public class TitleMenu extends GameSetup {
 		
 		// Initialize game buttons
 		buttonGroup = new ButtonGroup(Float.NaN, Camera.get().getDisplayHeight(0.625f), "Menu2", true);
-		buttonGroup.addButton(new Button("Join Game"));
-		buttonGroup.addButton(new Button("Host Game"));
+		buttonGroup.addButton(new Button("Play"));
 		buttonGroup.addButton(new Button("Options"));
 		buttonGroup.addButton(new Button("Exit"));
 		
@@ -60,20 +61,20 @@ public class TitleMenu extends GameSetup {
 			// Close options if user chooses to close
 			if(optionsMenu.isCloseRequest())
 				optionsMenu = null;
+		} else if(serverMenu != null) {
+			serverMenu.update();
+			if(serverMenu.isCloseRequest())
+				serverMenu = null;
 		} else {
 			// Update buttons
 			buttonGroup.update();
 			if(buttonGroup.getButton(0).isClicked()) {
 				// Start game, proceed with state swap
-				Theater.get().swapSetup(new Stage());
+				Theater.get().swapSetup(new ServerLobby());
 			} else if(buttonGroup.getButton(1).isClicked()) {
-				Server server = new Server(34336);
-				server.start();
-				Theater.get().swapSetup(new Stage());
-			} else if(buttonGroup.getButton(2).isClicked()) {
 				// Open options menu
 				optionsMenu = new OptionsMenu(20, 20, "Menu2");
-			} else if(buttonGroup.getButton(3).isClicked()) {
+			} else if(buttonGroup.getButton(2).isClicked()) {
 				// Exit game
 				Theater.get().close();
 			}
@@ -84,11 +85,15 @@ public class TitleMenu extends GameSetup {
 	public void draw() {
 		DrawUtils.fillColor(fill.x, fill.y, fill.z, fill.w);
 		
-		// Draw logo
-		logo.draw(Float.NaN, Camera.get().getDisplayHeight(0.1667f));
-		
-		// Draw buttons
-		buttonGroup.draw();
+		if(serverMenu != null) {
+			serverMenu.draw();
+		} else {
+			// Draw logo
+			logo.draw(Float.NaN, Camera.get().getDisplayHeight(0.1667f));
+			
+			// Draw buttons
+			buttonGroup.draw();
+		}
 		
 		// If options menu is open, draw it
 		if(optionsMenu != null)

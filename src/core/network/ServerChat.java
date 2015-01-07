@@ -5,6 +5,7 @@ import java.net.Socket;
 
 import core.cards.Table;
 import core.network.packets.ConnectedUsersPacket;
+import core.network.packets.GreetPacket;
 
 public class ServerChat extends Thread {
 
@@ -14,7 +15,7 @@ public class ServerChat extends Thread {
 	
 	public void run() {
 		// TODO Get total seats from login lobby
-		table = new Table(4);
+		//table = new Table(4);
 		open = true;
 	}
 	
@@ -117,6 +118,18 @@ public class ServerChat extends Thread {
 		}
 		
 		return temp;
+	}
+	
+	public void startGame() {
+		int players = 0;
+		for(int x = 0; x<clients.length; x++) {
+			if(clients[x] != null) {
+				players++;
+			}
+		}
+		
+		this.table = new Table(players);
+		broadcast(new GreetPacket(getTable()), null);
 	}
 	
 	public Table getTable() {

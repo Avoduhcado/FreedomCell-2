@@ -53,7 +53,6 @@ public class Server extends Thread {
 				//System.out.println("Socket timed out.");
 				closeSocket();
 				if(!serverChat.isOpen()) {
-					System.out.println("We dead");
 					listening = false;
 				}
 			} catch (SocketException e) {

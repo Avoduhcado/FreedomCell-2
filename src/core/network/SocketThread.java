@@ -10,6 +10,7 @@ import core.network.packets.CardMovePacket;
 import core.network.packets.CloseServerPacket;
 import core.network.packets.ConnectedUsersPacket;
 import core.network.packets.DisconnectClientPacket;
+import core.network.packets.GameStartPacket;
 import core.network.packets.GreetPacket;
 
 public class SocketThread extends Thread {
@@ -74,16 +75,17 @@ public class SocketThread extends Thread {
 	}
 	
 	public void readPacket(Packet packet) {
-		if(packet instanceof CardMovePacket) {
-			server.getTable().getStack(((CardMovePacket) packet).getMoveTo()).addCard(
-					server.getTable().getStack(((CardMovePacket) packet).getToMove()).getCards().removeLast());
-			server.broadcast(packet, this);
-		} else if(packet instanceof GreetPacket) {
+		if(packet instanceof GreetPacket) {
 			setClientName(((GreetPacket) packet).getClientName().matches("Client") ?
 					server.sortName(clientNumber) : ((GreetPacket) packet).getClientName());
 			System.out.println("Server: " + getClientName() + " has connected.");
 			server.broadcast(new ConnectedUsersPacket(clientNumber, server.getClientNames()), null);
-			server.broadcastTo(new GreetPacket(server.getTable()), this);
+		} else if(packet instanceof GameStartPacket) {
+			server.startGame();
+		} else if(packet instanceof CardMovePacket) {
+			server.getTable().getStack(((CardMovePacket) packet).getMoveTo()).addCard(
+					server.getTable().getStack(((CardMovePacket) packet).getToMove()).getCards().removeLast());
+			server.broadcast(packet, this);
 		} else if(packet instanceof DisconnectClientPacket) {
 			terminate();
 		} else if(packet instanceof CloseServerPacket) {

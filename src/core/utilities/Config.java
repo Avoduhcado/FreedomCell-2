@@ -37,16 +37,19 @@ public class Config {
 	    		} else if(line.matches("<NETWORK>")) {
 	    			while((line = reader.readLine()) != null && !line.matches("<END>")) { 
 	    				String[] temp = line.split("=");
-	    				if(temp[0].matches("joinip"))
-	    					joinIP = temp[1];
-	    				else if(temp[0].matches("joinport"))
-	    					joinPort = Integer.parseInt(temp[1]);
-	    				else if(temp[0].matches("joinname"))
-	    					joinName = temp[1];
-	    				else if(temp[0].matches("showip"))
-	    					showHostIP = Boolean.parseBoolean(temp[1]);
-	    				else if(temp[0].matches("hostport"))
-	    					hostPort = Integer.parseInt(temp[1]);
+	    				if(temp.length > 1) {
+		    				if(temp[0].matches("joinip")) {
+		    					joinIP = temp[1];
+		    				} else if(temp[0].matches("joinport")) {
+		    					joinPort = Integer.parseInt(temp[1]);
+		    				} else if(temp[0].matches("joinname")) {
+		    					joinName = temp[1];
+		    				} else if(temp[0].matches("showip")) {
+		    					showHostIP = Boolean.parseBoolean(temp[1]);
+		    				} else if(temp[0].matches("hostport")) {
+		    					hostPort = Integer.parseInt(temp[1]);
+		    				}
+	    				}
 	    			}
 	    		}
 	    	}

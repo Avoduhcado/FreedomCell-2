@@ -23,13 +23,14 @@ public class Stage extends GameSetup {
 	private Card selectedCard;
 	
 	private Client client;
-	private boolean starting;
-	private float timeout = 0f;
+	//private boolean starting;
+	//private float timeout = 0f;
 	
-	public Stage() {		
-		client = new Client("76.240.44.178", 34336, "Client", this);
+	public Stage(Client client) {
+		this.client = client;
+		/*client = new Client("76.240.44.178", 34336, "Client", this);
 		client.start();
-		starting = true;
+		starting = true;*/
 	}
 	
 	@Override
@@ -54,8 +55,10 @@ public class Stage extends GameSetup {
 			}
 		}
 		
-		// TODO Should be able to remove most of this with server browser
-		if(!client.isConnected() && !starting) {
+		if(!client.isConnected()) {
+			Theater.get().swapSetup(new TitleMenu());
+		}
+		/*if(!client.isConnected() && !starting) {
 			Theater.get().swapSetup(new TitleMenu());
 		} else if(client.isConnected() && starting) {
 			starting = false;
@@ -64,7 +67,7 @@ public class Stage extends GameSetup {
 			if(timeout > 5f) {
 				Theater.get().swapSetup(new TitleMenu());
 			}
-		}
+		}*/
 	}
 
 	@Override

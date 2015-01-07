@@ -5,8 +5,8 @@ import java.lang.reflect.Field;
 
 public class TextSegment {
 
-	private Color color = Color.black;
-	private float size = 1f;
+	private Color color = Color.darkGray;
+	private float size = GameFont.defaultSize;
 	private String fontFace;
 	
 	private String segment;
@@ -24,7 +24,7 @@ public class TextSegment {
 						if(temp[x].contains("#")) {
 							color = Color.decode(temp[x].substring(1));
 						} else {
-							Field f = Color.class.getField(temp[x].substring(1).toLowerCase());
+							Field f = Color.class.getField(temp[x].substring(1));
 							color = (Color) f.get(null);
 						}
 					} catch (Exception e) {
@@ -49,11 +49,11 @@ public class TextSegment {
 	}
 	
 	public float getWidth() {
-		return Text.getWidth(segment, fontFace) * size;
+		return Text.getWidth(segment, fontFace);
 	}
 	
 	public float getHeight() {
-		return Text.getHeight(segment, fontFace) * size;
+		return Text.getHeight(segment, fontFace);
 	}
 	
 }

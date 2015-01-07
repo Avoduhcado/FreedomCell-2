@@ -50,4 +50,12 @@ public class TextLine {
 		return width;
 	}
 	
+	public String getText() {
+		String text = "";
+		for(TextSegment s : line) {
+			text += s.getSegment();
+		}
+		return text;
+	}
+	
 }
