@@ -21,22 +21,6 @@ import core.utilities.text.Text;
 
 public class ServerMenu extends MenuOverlay {
 
-	/** TODO
-	 * Join server Button
-	 * Join server IP input
-	 * Join server Port input
-	 * Join server Hide details toggle
-	 * 
-	 * Host start lobby Button
-	 * Host start game Button
-	 * Host IP text
-	 * Host Port input
-	 * Host hide details toggle
-	 * 
-	 * Player lobby list
-	 * 
-	 */
-	
 	private Button join;
 	private InputBox joinIP;
 	private InputBox joinPort;

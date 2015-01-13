@@ -133,10 +133,13 @@ public class Camera {
 			DrawUtils.drawLine(getDisplayWidth(0.2f), 0, getDisplayWidth(0.2f), 1000);
 			DrawUtils.drawLine(getDisplayWidth(0.8f), 0, getDisplayWidth(0.8f), 1000);
 			// Horizontal
-			DrawUtils.drawLine(0, getDisplayHeight(0.65f), 9000, getDisplayHeight(0.65f));
-			DrawUtils.drawLine(0, getDisplayHeight(0.35f), 9000, getDisplayHeight(0.35f));
+			DrawUtils.drawLine(0, getDisplayHeight(0.625f), 9000, getDisplayHeight(0.625f));
+			DrawUtils.drawLine(0, getDisplayHeight(0.375f), 9000, getDisplayHeight(0.375f));
 			
-			Text.drawString(Theater.get().getSetup().getClass().getName(), 15, 15, Color.white);
+			Text.getFont("DEBUG").setSize(0.5f);
+			Text.drawString("Current Setup: " + Theater.get().getSetup().getClass().getName(), 15, 15, Color.white);
+			Text.getFont("DEBUG").setSize(0.5f);
+			Text.drawString("Avogine v" + Theater.AVOGINE_VERSION, 15, 45, Color.white);
 		}
 	}
 	

@@ -15,7 +15,8 @@ public class TextLine {
 	
 	public void draw(float x, float y, String font) {
 		for(int i = 0; i<line.size(); i++) {
-			line.get(i).draw(x + (i > 0 ? line.get(i).getSegment().length() : 0), y, font);
+			line.get(i).draw(x, y, font);
+			x += line.get(i).getWidth();
 		}
 	}
 	

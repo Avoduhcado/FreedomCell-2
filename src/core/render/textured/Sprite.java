@@ -33,6 +33,7 @@ public class Sprite {
 	private float rotateSpeed = 0f;
 	private Vector3f scale = new Vector3f(1f, 1f, 1f);
 	
+	private boolean still;
 	private Dimension fixedSize;
 	
 	public Sprite(String ref) {
@@ -61,10 +62,17 @@ public class Sprite {
 		
 		GL11.glPushMatrix();
 		
-		GL11.glTranslatef((int) (x - Camera.get().frame.getX()), (int) (y - Camera.get().frame.getY()), 0f);
+		if(still) {
+			// Static positioning
+			GL11.glTranslatef((int) x, (int) y, 0f);
+		} else {
+			// Positioning relative to camera movement
+			GL11.glTranslatef((int) (x - Camera.get().frame.getX()), (int) (y - Camera.get().frame.getY()), 0f);
+		}
 		GL11.glColor4f(color.x, color.y, color.z, color.w);
 		GL11.glRotatef(rotation.w, rotation.x, rotation.y, rotation.z);
 		//if(rotateSpeed != 0f)
+			// Base rotation from center of object
 			//GL11.glTranslatef(-getWidth() / 2f, -getHeight() / 2f, 0f);
 		GL11.glScalef(scale.x, scale.y, scale.z);
 		GL11.glEnable(GL11.GL_BLEND);
@@ -164,6 +172,10 @@ public class Sprite {
 			return texture.getImageHeight() / maxDirection;
 		
 		return fixedSize.height;
+	}
+	
+	public void setStill(boolean still) {
+		this.still = still;
 	}
 	
 	public void setFixedSize(int width, int height) {

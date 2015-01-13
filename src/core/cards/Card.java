@@ -25,6 +25,8 @@ public class Card extends Mobile implements Serializable {
 	private Suit suit;
 	
 	private float rotation = 0f;
+	private float rotateSpeed = 0f;
+	private float rotateEnd = 0f;
 	private float scale = 1f;
 	
 	private int stackType = 0;
@@ -37,6 +39,7 @@ public class Card extends Mobile implements Serializable {
 		this.setSuit(suit);
 		this.box = new Rectangle2D.Double(0, 0, size.getWidth(), size.getHeight());
 		this.sprite = suit.toString() + rank;
+		this.speed = 15f;
 		try {
 			if(Display.isCurrent()) {
 				SpriteIndex.getSprite(sprite);
@@ -50,19 +53,23 @@ public class Card extends Mobile implements Serializable {
 	public void update() {
 		if(fade != -1f) {
 			if(fader) {
-				fade -= Theater.getDeltaSpeed(0.05f);
-				if(fade <= 0f) {
-					fade = 0f;
+				fade -= Theater.getDeltaSpeed(0.025f);
+				if(fade <= 0.3f) {
+					fade = 0.3f;
 					fader = false;
 				}
 			} else {
-				fade += Theater.getDeltaSpeed(0.05f);
-				if(fade >= 1f) {
-					fade = 1f;
+				fade += Theater.getDeltaSpeed(0.025f);
+				if(fade >= 0.7f) {
+					fade = 0.7f;
 					fader = true;
 				}
 			}
 		}
+		
+		/*if(rotateSpeed != 0) {
+			rotate();
+		}*/
 	}
 	
 	@Override
@@ -125,8 +132,44 @@ public class Card extends Mobile implements Serializable {
 			this.rotation = 270f;
 			break;
 		}
+		this.rotateSpeed = 0f;
 		
 		updateBox();
+	}
+	
+	public float getRotation() {
+		return rotation;
+	}
+	
+	public void setRotation(int rotation) {
+		switch(rotation) {
+		case -1:
+		case 0:
+			this.rotateEnd = 0f;
+			break;
+		case 1:
+			this.rotateEnd = 180f;
+			break;
+		case 2:
+			this.rotateEnd = 90f;
+			break;
+		case 3:
+			this.rotateEnd = 270f;
+			break;
+		}
+		
+		this.rotateSpeed = 4.5f;
+	}
+	
+	public void rotate() {
+		if(rotation != rotateEnd) {
+			rotation += Theater.getDeltaSpeed(rotateSpeed);
+			if(rotateSpeed > 0 && rotation >= rotateEnd) {
+				rotateSpeed = 0f;
+			} else if(rotateSpeed < 0 && rotation <= rotateEnd) {
+				rotateSpeed = 0f;
+			}
+		}
 	}
 	
 	public boolean matches(Card card) {
@@ -158,12 +201,13 @@ public class Card extends Mobile implements Serializable {
 			// Other occurrences of the same card
 			setHighlight(1);
 		} else if(this.getStackType() != 2 && card.getStackType() != 0
-				&& (((this.getStackType() == 1 || this.getStackType() == 0) && this.canBePlacedOn(card, false))
+				&& (((this.getStackType() == 1 || this.getStackType() == 0) && this.canBePlacedOn(card, false) && card.getStackType() != 2)
 				|| (card.getStackType() == 2 && this.canBePlacedOn(card, true)))) {
 			// This card can be placed on top of the selected card
 			setHighlight(2);
 		} else if((this.getStackType() != 0 && card.getStackType() != 2) 
-				&& (card.canBePlacedOn(this, false) || (this.getStackType() == 2 && card.canBePlacedOn(this, true)))) {
+				&& ((this.getStackType() != 2 && card.canBePlacedOn(this, false)) 
+						|| (this.getStackType() == 2 && card.canBePlacedOn(this, true)))) {
 			// The selected card can be placed on top of this card
 			setHighlight(3);
 		} else {
@@ -228,7 +272,7 @@ public class Card extends Mobile implements Serializable {
 		if(this.highlight != highlight) {
 			this.highlight = highlight;
 			if(highlight != 0) {
-				fade = 1f;
+				fade = 0.7f;
 				fader = true;
 			} else
 				fade = -1f;

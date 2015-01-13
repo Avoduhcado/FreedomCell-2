@@ -14,8 +14,6 @@ public class ServerChat extends Thread {
 	private boolean open;
 	
 	public void run() {
-		// TODO Get total seats from login lobby
-		//table = new Table(4);
 		open = true;
 	}
 	
@@ -120,7 +118,7 @@ public class ServerChat extends Thread {
 		return temp;
 	}
 	
-	public void startGame() {
+	public void startGame(long seed) {
 		int players = 0;
 		for(int x = 0; x<clients.length; x++) {
 			if(clients[x] != null) {
@@ -128,7 +126,7 @@ public class ServerChat extends Thread {
 			}
 		}
 		
-		this.table = new Table(players);
+		this.table = new Table(players, seed);
 		broadcast(new GreetPacket(getTable()), null);
 	}
 	

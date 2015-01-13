@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.net.SocketException;
 
 import core.network.packets.CardMovePacket;
+import core.network.packets.ChatPacket;
 import core.network.packets.CloseServerPacket;
 import core.network.packets.ConnectedUsersPacket;
 import core.network.packets.DisconnectClientPacket;
@@ -81,11 +82,13 @@ public class SocketThread extends Thread {
 			System.out.println("Server: " + getClientName() + " has connected.");
 			server.broadcast(new ConnectedUsersPacket(clientNumber, server.getClientNames()), null);
 		} else if(packet instanceof GameStartPacket) {
-			server.startGame();
+			server.startGame(((GameStartPacket) packet).getSeed());
 		} else if(packet instanceof CardMovePacket) {
 			server.getTable().getStack(((CardMovePacket) packet).getMoveTo()).addCard(
 					server.getTable().getStack(((CardMovePacket) packet).getToMove()).getCards().removeLast());
 			server.broadcast(packet, this);
+		} else if(packet instanceof ChatPacket) {
+			server.broadcast(new ChatPacket("corange>" + clientName + "<cwhite>: " + ((ChatPacket) packet).getMessage()), null);
 		} else if(packet instanceof DisconnectClientPacket) {
 			terminate();
 		} else if(packet instanceof CloseServerPacket) {

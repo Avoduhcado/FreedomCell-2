@@ -1,7 +1,10 @@
 package core.setups;
 
+import java.awt.Color;
+
 import org.lwjgl.util.vector.Vector3f;
 
+import core.Camera;
 import core.Theater;
 import core.cards.Card;
 import core.cards.CardStack;
@@ -9,9 +12,11 @@ import core.cards.Table;
 import core.network.Client;
 import core.network.packets.CardMovePacket;
 import core.render.DrawUtils;
+import core.ui.overlays.Chatlog;
 import core.ui.overlays.GameMenu;
 import core.utilities.keyboard.Keybinds;
 import core.utilities.mouse.MouseInput;
+import core.utilities.text.Text;
 
 public class Stage extends GameSetup {
 	
@@ -23,14 +28,13 @@ public class Stage extends GameSetup {
 	private Card selectedCard;
 	
 	private Client client;
-	//private boolean starting;
-	//private float timeout = 0f;
+	private Chatlog chat;
+	private String[] players;
 	
 	public Stage(Client client) {
 		this.client = client;
-		/*client = new Client("76.240.44.178", 34336, "Client", this);
-		client.start();
-		starting = true;*/
+		this.players = client.getPlayerList().split(";");
+		this.chat = new Chatlog(Camera.get().getDisplayWidth(0.05f), Camera.get().getDisplayHeight(0.775f), "Menu2");
 	}
 	
 	@Override
@@ -50,6 +54,15 @@ public class Stage extends GameSetup {
 				}
 			}
 			
+			if(chat.isActive()) {
+				if(chat.isCloseRequest()) {
+					chat.close();
+				}
+				chat.update();
+			} else if(Keybinds.CONFIRM.clicked()) {
+				chat.open();
+			}
+			
 			if(Keybinds.EXIT.clicked()) {
 				gameMenu = new GameMenu(20f, 20f, "Menu2");
 			}
@@ -58,16 +71,6 @@ public class Stage extends GameSetup {
 		if(!client.isConnected()) {
 			Theater.get().swapSetup(new TitleMenu());
 		}
-		/*if(!client.isConnected() && !starting) {
-			Theater.get().swapSetup(new TitleMenu());
-		} else if(client.isConnected() && starting) {
-			starting = false;
-		} else if(!client.isConnected() && starting) {
-			timeout += Theater.getDeltaSpeed(0.025f);
-			if(timeout > 5f) {
-				Theater.get().swapSetup(new TitleMenu());
-			}
-		}*/
 	}
 
 	@Override
@@ -75,7 +78,31 @@ public class Stage extends GameSetup {
 		DrawUtils.fillColor(0f, 0.5f, 0f, 1f);
 		
 		if(table != null)
-			table.draw(seat);
+			table.draw();
+		
+		for(int x = 0; x<players.length; x++) {
+			switch((x % players.length) - seat < 0 ? ((x % players.length) - seat) + players.length : (x % players.length) - seat) {
+			case 0:
+				Text.drawString(players[x], Camera.get().getDisplayWidth(0.35f),
+						Camera.get().getDisplayHeight(0.625f) - Text.getHeight(players[x]), Color.white);
+				break;
+			case 1:
+				Text.drawString(players[x], Camera.get().getDisplayWidth(0.55f),
+						Camera.get().getDisplayHeight(0.375f), Color.white);
+				break;
+			case 2:
+				Text.drawString(players[x], Camera.get().getDisplayWidth(0.05f),
+						Camera.get().getDisplayHeight(0.925f), Color.white);
+				break;
+			case 3:
+				Text.drawString(players[x], Camera.get().getDisplayWidth(0.85f),
+						Camera.get().getDisplayHeight(0.075f) - Text.getHeight(players[x]), Color.white);
+				break;
+			}
+		}
+		
+		Text.drawString(players[seat], Camera.get().getDisplayWidth(0.35f),
+				Camera.get().getDisplayHeight(0.625f) - Text.getHeight(players[seat]), Color.white);
 		
 		if(selectedCard != null) {
 			if(selectedCard.getSuit().isBlack())
@@ -85,8 +112,14 @@ public class Stage extends GameSetup {
 			DrawUtils.drawRect(selectedCard.getX(), selectedCard.getY(), selectedCard.getBox());
 		}
 		
-		if(gameMenu != null)
+		if(chat.isActive()) {
+			chat.draw();
+		}
+		
+		if(gameMenu != null) {
+			DrawUtils.fillColor(0f, 0f, 0f, 0.45f);
 			gameMenu.draw();
+		}
 	}
 
 	@Override
@@ -180,6 +213,10 @@ public class Stage extends GameSetup {
 
 	public Client getClient() {
 		return client;
+	}
+	
+	public Chatlog getChat() {
+		return chat;
 	}
 	
 }

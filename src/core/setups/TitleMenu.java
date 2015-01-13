@@ -104,10 +104,10 @@ public class TitleMenu extends GameSetup {
 		if(fading) {
 			if(fadeTimer < 5f) {
 				fadeTimer += Theater.getDeltaSpeed(0.025f);
-				if(fill.w < 1f) {
+				if(fill.w < 0.95f) {
 					fill.w += Theater.getDeltaSpeed(0.025f);
-					if(fill.w > 1f)
-						fill.w = 1f;
+					if(fill.w > 0.95f)
+						fill.w = 0.95f;
 				}
 			} else {
 				fadeTimer = 2f;

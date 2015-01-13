@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.lwjgl.util.vector.Vector4f;
+
 import core.Camera;
 import core.Theater;
 import core.network.Client;
@@ -14,6 +16,7 @@ import core.network.Server;
 import core.network.packets.CloseServerPacket;
 import core.network.packets.DisconnectClientPacket;
 import core.network.packets.GameStartPacket;
+import core.render.DrawUtils;
 import core.ui.Button;
 import core.ui.CheckBox;
 import core.ui.ElementGroup;
@@ -32,14 +35,22 @@ public class ServerLobby extends GameSetup {
 	private EmptyFrame joinFrame;
 	
 	private Button hostLobby;
+	private CheckBox hostLocal;
 	private Button hostGame;
 	private TextBox hostIP;
 	private InputBox hostPort;
 	private CheckBox hostHide;
 	private EmptyFrame hostFrame;
 	
+	private TextBox nameTitle;
 	private InputBox name;
+	private EmptyFrame nameFrame;
+	
 	private TextBox connectedUsers;
+	
+	private TextBox seedTitle;
+	private InputBox seed;
+	private EmptyFrame seedFrame;
 	
 	private ElementGroup inputs;
 	private Button close;
@@ -48,6 +59,10 @@ public class ServerLobby extends GameSetup {
 	private boolean starting;
 	private float timeout = 0f;
 	private boolean host;
+	
+	private Vector4f fill = new Vector4f(1f, 1f, 1f, 0f);
+	private boolean fading = true;
+	private float fadeTimer;
 	
 	public ServerLobby() {
 		inputs = new ElementGroup();
@@ -71,6 +86,8 @@ public class ServerLobby extends GameSetup {
 				(float) joinHide.getBox().getMaxY() - join.getY(), false);
 		
 		hostLobby = new Button("Host Lobby", Camera.get().getDisplayWidth(0.15f), Camera.get().getDisplayHeight(0.275f), 0, null);
+		hostLocal = new CheckBox((float) (hostLobby.getBox().getMaxX() + (hostLobby.getBox().getWidth() * 0.5f)), 
+				Camera.get().getDisplayHeight(0.275f), null, "Host LAN");
 		hostGame = new Button("Start Game", Camera.get().getDisplayWidth(0.15f), (float) hostLobby.getBox().getMaxY(), 0, null);
 		hostGame.setEnabled(false);
 		hostIP = new TextBox("127.0.0.1", "SYSTEM", Camera.get().getDisplayWidth(0.15f), (float) hostGame.getBox().getMaxY(), null);
@@ -95,17 +112,34 @@ public class ServerLobby extends GameSetup {
 		hostFrame.setBox(hostFrame.getX(), hostFrame.getY(), (float) hostHide.getBox().getWidth() * 2f,
 				(float) hostHide.getBox().getMaxY() - hostLobby.getY(), false);
 		
-		name = new InputBox(Camera.get().getDisplayWidth(0.15f), Camera.get().getDisplayHeight(0.525f),
-				"Menu2", 0, Config.joinName, 15);
+		nameTitle = new TextBox("cwhite>Username:", "SYSTEM",
+				Camera.get().getDisplayWidth(0.15f), Camera.get().getDisplayHeight(0.525f), null);
+		name = new InputBox(Camera.get().getDisplayWidth(0.15f), (float) nameTitle.getBox().getMaxY(),
+				null, 0, Config.joinName, 15);
 		name.setCentered(false);
 		name.setEnabled(false);
+		nameFrame = new EmptyFrame(Camera.get().getDisplayWidth(0.15f), nameTitle.getY(), "Menu2");
+		nameFrame.setBox(nameFrame.getX(), nameFrame.getY(), (float) hostFrame.getBox().getWidth(),
+				(float) name.getBox().getMaxY() - nameTitle.getY(), false);
 		inputs.add(name);
 		
-		close = new Button("Close", Float.NaN, Camera.get().getDisplayHeight(0.833f), 0, "Menu2");
+		seedTitle = new TextBox("cwhite>Game Seed:", "SYSTEM",
+				Camera.get().getDisplayWidth(0.15f), Camera.get().getDisplayHeight(0.65f), null);
+		seed = new InputBox(seedTitle.getX(), (float) seedTitle.getBox().getMaxY(), null, 0, "Seed", 15);
+		seed.setCentered(false);
+		seed.setEnabled(false);
+		seedFrame = new EmptyFrame(Camera.get().getDisplayWidth(0.15f), seedTitle.getY(), "Menu2");
+		seedFrame.setBox(seedFrame.getX(), seedFrame.getY(), (float) hostFrame.getBox().getWidth(),
+				(float) seed.getBox().getMaxY() - seedTitle.getY(), false);
+		inputs.add(seed);
+		
+		close = new Button("Return to Title", Float.NaN, Camera.get().getDisplayHeight(0.833f), 0, "Menu2");
 	}
 	
 	@Override
 	public void update() {
+		fade();
+		
 		join.update();
 		if(join.isClicked() && join.isEnabled()) {
 			hostLobby.setEnabled(!hostLobby.isEnabled());
@@ -115,6 +149,7 @@ public class ServerLobby extends GameSetup {
 				
 				timeout = 0f;
 				starting = true;
+				inputs.setEnabledAll(false);
 			} else {
 				connectedUsers = null;
 				if(client.isConnected()) {
@@ -126,16 +161,20 @@ public class ServerLobby extends GameSetup {
 		
 		if(!joinHide.isChecked()) {
 			joinIP.update();
-			if(joinIP.isClicked()) {
+			if(joinIP.isClicked() && connectedUsers == null) {
 				inputs.setEnabledAllExcept(false, joinIP);
+			} else if(connectedUsers != null) {
+				joinIP.setEnabled(false);
 			}
 			if(joinIP.isEnabled() && joinIP.input() != null) {
 				Config.joinIP = joinIP.getText();
 				joinIP.setEnabled(false);
 			}
 			joinPort.update();
-			if(joinPort.isClicked()) {
+			if(joinPort.isClicked() && connectedUsers == null) {
 				inputs.setEnabledAllExcept(false, joinPort);
+			} else if(connectedUsers != null) {
+				joinPort.setEnabled(false);
 			}
 			if(joinPort.isEnabled() && joinPort.input() != null) {
 				Config.joinPort = Integer.parseInt(joinPort.getText());
@@ -157,14 +196,23 @@ public class ServerLobby extends GameSetup {
 				connectedUsers = new TextBox("c#FFFFFF>Current Users:;" + "clightGray>" + name.getText(), "SYSTEM",
 						Camera.get().getDisplayWidth(0.5f), hostLobby.getY(), "Menu2");
 				host = true;
-				Server server = new Server(Integer.parseInt(hostPort.getText()));
-				server.start();
-				
-				client = new Client(hostIP.getText(), Integer.parseInt(hostPort.getText()), name.getText(), this);
-				client.start();
+				if(hostLocal.isChecked()) {
+					Server server = new Server(8080);
+					server.start();
+					
+					client = new Client("localhost", 8080, name.getText(), this);
+					client.start();
+				} else {
+					Server server = new Server(Integer.parseInt(hostPort.getText()));
+					server.start();
+					
+					client = new Client(hostIP.getText(), Integer.parseInt(hostPort.getText()), name.getText(), this);
+					client.start();
+				}
 				
 				timeout = 0f;
 				starting = true;
+				inputs.setEnabledAll(false);
 			} else {
 				join.setEnabled(true);
 				connectedUsers = null;
@@ -173,17 +221,20 @@ public class ServerLobby extends GameSetup {
 				host = false;
 			}
 		}
+		hostLocal.update();
 		hostGame.update();
 		if(hostGame.isClicked() && hostGame.isEnabled()) {
 			if(client.isConnected()) {
-				client.sendData(new GameStartPacket());
+				client.sendData(new GameStartPacket(getSeed()));
 			}
 		}
 		
 		if(!hostHide.isChecked()) {
 			hostPort.update();
-			if(hostPort.isClicked()) {
+			if(hostPort.isClicked() && connectedUsers == null) {
 				inputs.setEnabledAllExcept(false, hostPort);
+			} else if(connectedUsers != null) {
+				hostPort.setEnabled(false);
 			}
 			if(hostPort.isEnabled() && hostPort.input() != null) {
 				Config.hostPort = Integer.parseInt(hostPort.getText());
@@ -197,17 +248,29 @@ public class ServerLobby extends GameSetup {
 		}
 		
 		name.update();
-		if(name.isClicked()) {
+		if(name.isClicked() && connectedUsers == null) {
 			inputs.setEnabledAllExcept(false, name);
+		} else if(connectedUsers != null) {
+			name.setEnabled(false);
 		}
 		if(name.isEnabled() && name.input() != null) {
 			Config.joinName = name.getText();
 			name.setEnabled(false);
 		}
 		
+		seed.update();
+		if(seed.isClicked() && connectedUsers == null) {
+			inputs.setEnabledAllExcept(false, seed);
+		} else if(connectedUsers != null) {
+			seed.setEnabled(false);
+		}
+		if(seed.isEnabled() && seed.input() != null) {
+			seed.setEnabled(false);
+		}
+		
 		close.update();
 		if(close.isClicked()) {
-			if(client != null) {
+			if(client != null && client.isConnected()) {
 				if(host)
 					client.sendData(new CloseServerPacket());
 				else
@@ -240,6 +303,8 @@ public class ServerLobby extends GameSetup {
 
 	@Override
 	public void draw() {
+		DrawUtils.fillColor(fill.x, fill.y, fill.z, fill.w);
+		
 		joinFrame.draw();
 		join.draw();
 		if(!joinHide.isChecked()) {
@@ -253,6 +318,7 @@ public class ServerLobby extends GameSetup {
 		
 		hostFrame.draw();
 		hostLobby.draw();
+		hostLocal.draw();
 		hostGame.draw();
 		if(!hostHide.isChecked()) {
 			hostIP.draw();
@@ -263,7 +329,14 @@ public class ServerLobby extends GameSetup {
 		}
 		hostHide.draw();
 		
+		nameFrame.draw();
+		nameTitle.draw();
 		name.draw();
+		
+		seedFrame.draw();
+		seedTitle.draw();
+		seed.draw();
+		
 		if(connectedUsers != null) {
 			connectedUsers.draw();
 		}
@@ -276,6 +349,45 @@ public class ServerLobby extends GameSetup {
 
 	}
 	
+	public void fade() {
+		if(fading) {
+			if(fadeTimer < 5f) {
+				fadeTimer += Theater.getDeltaSpeed(0.025f);
+				if(fill.w < 1f) {
+					fill.w += Theater.getDeltaSpeed(0.025f);
+					if(fill.w > 1f)
+						fill.w = 1f;
+				}
+			} else {
+				fadeTimer = 2f;
+				fading = false;
+			}
+		} else {
+			if(fadeTimer > 0f) {
+				fadeTimer -= Theater.getDeltaSpeed(0.025f);
+				if(fill.w > 0f) {
+					fill.w -= Theater.getDeltaSpeed(0.025f) / 2f;
+					if(fill.w < 0f)
+						fill.w = 0f;
+				}
+			} else {
+				fadeTimer = 0f;
+				fading = true;
+				switch((int)(Math.random() * 3)) {
+				case(0):
+					fill = new Vector4f(0.95f, 0.95f, 0.95f, 0f);
+					break;
+				case(1):
+					fill = new Vector4f(0.85f, 0.1f, 0.25f, 0f);
+					break;
+				case(2):
+					fill = new Vector4f(0.2f, 0.15f, 0.85f, 0f);
+					break;
+				}
+			}
+		}
+	}
+	
 	public void setConnectedUsers(String[] users) {
 		if(connectedUsers == null)
 			connectedUsers = new TextBox("", "SYSTEM", Camera.get().getDisplayWidth(0.5f), join.getY(), "Menu2");
@@ -285,6 +397,23 @@ public class ServerLobby extends GameSetup {
 				connectedUsers.addText(";" + s);
 			}
 		}
+	}
+	
+	public long getSeed() {
+		long gameSeed = System.currentTimeMillis();
+		if(!seed.getText().matches("") && !seed.getText().matches("Seed")) {
+			try {
+				gameSeed = Long.parseLong(seed.getText());
+			} catch(NumberFormatException e) {
+				gameSeed = 0;
+				char[] characterSeed = seed.getText().toCharArray();
+				for(char s : characterSeed) {
+					gameSeed += (int)s * 34;
+				}
+			}
+		}
+		
+		return gameSeed;
 	}
 
 	public Client getClient() {

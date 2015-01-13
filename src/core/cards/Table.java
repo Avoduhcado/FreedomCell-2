@@ -14,7 +14,7 @@ public class Table implements Serializable {
 	private CardStack[] cells = new CardStack[4];
 	private Seat[] seats;
 	
-	public Table(int totalSeats) {
+	public Table(int totalSeats, long seed) {
 		for(int i = 0; i<cells.length; i++) {
 			cells[i] = new CardStack(Camera.get().getDisplayWidth(0.5f) - ((Card.size.width * (cells.length / 2)) - (Card.size.width * i)),
 					Camera.get().getDisplayHeight(0.425f));
@@ -23,13 +23,12 @@ public class Table implements Serializable {
 		
 		this.seats = new Seat[totalSeats];
 				
-		dealCards();
+		dealCards(seed);
 	}
 	
-	public void dealCards() {
+	public void dealCards(long seed) {
 		Deck deck = new Deck(seats.length);
-		// TODO Enable seeds
-		deck.shuffle(System.currentTimeMillis());
+		deck.shuffle(seed);
 		
 		for(int x = 0; x<seats.length; x++) {
 			seats[x] = new Seat(deck.getCards(x * Deck.size, Deck.size + (x * Deck.size)));
@@ -61,7 +60,7 @@ public class Table implements Serializable {
 		}
 	}
 	
-	public void draw(int seat) {
+	public void draw() {
 		for(CardStack c : cells) {
 			c.draw();
 		}
@@ -69,10 +68,30 @@ public class Table implements Serializable {
 		for(Seat s : seats) {
 			s.draw();
 		}
+		
+		for(CardStack c : cells) {
+			if(c.getTopCard() != null && c.getTopCard().getDistance() != 0) {
+				c.draw();
+			}
+		}
+		
+		// Moving cards, this is bad but I don't care
+		for(Seat s : seats) {
+			for(Foundation f : s.getFoundations()) {
+				if(f.getTopCard() != null && f.getTopCard().getDistance() != 0) {
+					f.getTopCard().draw();
+				}
+			}
+			for(Cascade c : s.getCascades()) {
+				if(c.getTopCard() != null && c.getTopCard().getDistance() != 0) {
+					c.getTopCard().draw();
+				}
+			}
+		}
 	}
 	
 	public void moveCard(int toMove, int moveTo) {
-		getStack(moveTo).addCard(getStack(toMove).getCards().removeLast());
+		getStack(moveTo).addCard(getStack(toMove).removeTopCard());
 		
 		// Adjust card orientation if need be
 		/*if(getStack(moveTo).getRotation() != getStack(toMove).getRotation()) {
@@ -85,7 +104,7 @@ public class Table implements Serializable {
 	public CardStack removeCard(Card card) {
 		for(CardStack c : cells) {
 			if(c.getTopCard() != null && c.getTopCard().equals(card)) {
-				c.getCards().remove();
+				c.removeTopCard();
 				return c;
 			}
 		}
@@ -93,7 +112,7 @@ public class Table implements Serializable {
 		for(Seat s : seats) {
 			for(CardStack c : s.getCascades()) {
 				if(c.getTopCard() != null && c.getTopCard().equals(card)) {
-					c.getCards().removeLast();
+					c.removeTopCard();
 					return c;
 				}
 			}

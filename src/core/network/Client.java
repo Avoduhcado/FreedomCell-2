@@ -10,6 +10,7 @@ import java.net.UnknownHostException;
 
 import core.Theater;
 import core.network.packets.CardMovePacket;
+import core.network.packets.ChatPacket;
 import core.network.packets.ConnectedUsersPacket;
 import core.network.packets.GreetPacket;
 import core.setups.GameSetup;
@@ -54,7 +55,7 @@ public class Client extends Thread {
 		} catch (IOException e) {
 			System.out.println("Couldn't connect to host, trying localhost");
 			try {
-				socket = new Socket("localhost", portNumber);
+				socket = new Socket("localhost", 8080);
 				out = new ObjectOutputStream(socket.getOutputStream());
 				out.flush();
 				
@@ -70,6 +71,8 @@ public class Client extends Thread {
 				listening = false;
 			}
 		}
+		
+		System.out.println("Are we listening? " + listening);
 		
 		if(listening) {
 			// Send client name to server to greet
@@ -92,7 +95,7 @@ public class Client extends Thread {
 				Packet fromServer;
 	
 				if((fromServer = (Packet) in.readObject()) != null) {
-					System.out.println("From Server: " + fromServer.toString() + " " + fromServer.getClass());
+					//System.out.println("From Server: " + fromServer.toString() + " " + fromServer.getClass());
 					parseData(fromServer);
 				}
 			} catch (SocketException e) {
@@ -155,6 +158,9 @@ public class Client extends Thread {
 			this.setup = Theater.get().getSetup();
 			((Stage) setup).setSeat(seatNumber);
 			((Stage) setup).setTable(((GreetPacket) packet).getTable());
+		} else if(packet instanceof ChatPacket) {
+			// TODO Chat processing for special commands? /kick and stuff?
+			((Stage) setup).getChat().addMessage(((ChatPacket) packet).getMessage());
 		}
 	}
 	
@@ -194,6 +200,20 @@ public class Client extends Thread {
 	
 	public String getPlayerName(int x) {
 		return playerNames[x];
+	}
+	
+	public String[] getPlayerNames() {
+		return playerNames;
+	}
+	
+	public String getPlayerList() {
+		String names = playerNames[0];
+		for(int x = 1; x<playerNames.length; x++) {
+			if(playerNames[x] != null)
+				names += ";" + playerNames[x].replaceAll(";", " ");
+		}
+		
+		return names;
 	}
 	
 	public void setPlayerNames(String[] names) {

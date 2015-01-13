@@ -14,6 +14,7 @@ public abstract class Mobile extends Entity {
 	protected float speedMod = 1f;
 	protected float dx, dy;
 	protected float distance;
+	protected float totalDistance;
 
 	public void move() {
 		followPath();
@@ -28,8 +29,8 @@ public abstract class Mobile extends Entity {
 		if(distance > 0) {
 			if((float) Math.sqrt(Math.pow(Theater.getDeltaSpeed(dx), 2) + Math.pow(Theater.getDeltaSpeed(dy), 2)) > distance) {
 				float tempDistance = distance / (float) Math.sqrt(Math.pow(Theater.getDeltaSpeed(dx), 2) + Math.pow(Theater.getDeltaSpeed(dy), 2));
-				dx = dx * tempDistance;
-				dy = dy * tempDistance;
+				dx = (dx * tempDistance) / (distance / totalDistance);
+				dy = (dy * tempDistance) / (distance / totalDistance);
 			}
 			distance -= (float) Math.sqrt(Math.pow(Theater.getDeltaSpeed(dx), 2) + Math.pow(Theater.getDeltaSpeed(dy), 2));
 		}
@@ -52,6 +53,8 @@ public abstract class Mobile extends Entity {
 			dy = (float) Math.cos(theta) * getFullSpeed();
 			distance = (float) Math.sqrt(Math.pow(x - destination.getX(), 2) + Math.pow(y - destination.getY(), 2));
 		}
+		
+		totalDistance = distance;
 	}
 	
 	public float getSpeed() {

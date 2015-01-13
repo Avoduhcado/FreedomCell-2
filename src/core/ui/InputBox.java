@@ -201,6 +201,10 @@ public class InputBox extends UIElement {
 		return text;
 	}
 	
+	public void setText(String text) {
+		this.text = text;
+	}
+	
 	@Override
 	public void updateBox() {
 		if(!text.isEmpty()) {

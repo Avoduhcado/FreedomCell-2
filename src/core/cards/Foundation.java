@@ -1,5 +1,7 @@
 package core.cards;
 
+import java.awt.geom.Point2D;
+
 import core.Camera;
 import core.render.SpriteIndex;
 
@@ -17,7 +19,10 @@ public class Foundation extends CardStack {
 	@Override
 	public void draw() {
 		if(!cards.isEmpty()) {
+			if(cards.size() > 1)
+				cards.get(cards.size() - 2).draw();
 			getTopCard().draw();
+				
 		} else {
 			switch(rotation) {
 			case -1:
@@ -45,19 +50,19 @@ public class Foundation extends CardStack {
 		case 0:
 			setPosition(Camera.get().getDisplayWidth(0.335f) - (((Card.size.width + 2) * 2)
 					- ((Card.size.width + 2) * (stack % 2))),
-					(stack < 2 ? Camera.get().getDisplayHeight(0.65f) : Camera.get().getDisplayHeight(0.8f)));
+					(stack < 2 ? Camera.get().getDisplayHeight(0.625f) : Camera.get().getDisplayHeight(0.775f)));
 			break;
 		case 1:
 			setPosition(Camera.get().getDisplayWidth(0.665f) + (((Card.size.width + 2) * 2)
 					- ((Card.size.width + 2) * (stack % 2))),
-					(stack < 2 ? Camera.get().getDisplayHeight(0.35f) : Camera.get().getDisplayHeight(0.2f)));
+					(stack < 2 ? Camera.get().getDisplayHeight(0.375f) : Camera.get().getDisplayHeight(0.225f)));
 			break;
 		case 2:
-			setPosition((stack < 2 ? Camera.get().getDisplayWidth(0.2f) : Camera.get().getDisplayWidth(0.115f)), 
+			setPosition((stack < 2 ? Camera.get().getDisplayWidth(0.215f) : Camera.get().getDisplayWidth(0.13f)), 
 					Camera.get().getDisplayHeight(0.205f) - (((Card.size.width + 2) * 2) - ((Card.size.width + 2) * (stack % 2))));
 			break;
 		case 3:
-			setPosition((stack < 2 ? Camera.get().getDisplayWidth(0.8f) : Camera.get().getDisplayWidth(0.885f)), 
+			setPosition((stack < 2 ? Camera.get().getDisplayWidth(0.785f) : Camera.get().getDisplayWidth(0.87f)), 
 					Camera.get().getDisplayHeight(0.795f) + (((Card.size.width + 2) * 2) - ((Card.size.width + 2) * (stack % 2))));
 			break;
 		}
@@ -70,13 +75,19 @@ public class Foundation extends CardStack {
 	
 	@Override
 	public void addCard(Card card) {
-		card.setPosition((float) position.getX(), (float) position.getY());
+		card.setMovement(new Point2D.Double(position.getX(), position.getY()));
 		card.flip(rotation);
 		
 		if(!cards.contains(card))
 			cards.add(card);
 		
 		getTopCard().setStackType(2);
+	}
+	
+	@Override
+	public void align(Card card) {
+		card.setPosition((float) position.getX(), (float) position.getY());
+		card.flip(rotation);
 	}
 	
 }

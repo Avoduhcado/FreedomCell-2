@@ -14,7 +14,7 @@ public class GameFont {
 	
 	private String fontName;
 	private float size;
-	public static final float defaultSize = 0.6f;
+	public static final float defaultSize = 0.45f;
 	private Color color;
 	private boolean dropShadow = true;
 	
@@ -59,11 +59,11 @@ public class GameFont {
 		float advance = 0;
 		for(int i = 0; i<text.length(); i++) {
 			// Apply text adjustments
-			glyphs.get(text.charAt(i)).setColor(color);
-			glyphs.get(text.charAt(i)).setSize(size);
+			getChar(text.charAt(i)).setColor(color);
+			getChar(text.charAt(i)).setSize(size);
 			
-			glyphs.get(text.charAt(i)).draw(x + advance, y);
-			advance += glyphs.get(text.charAt(i)).getXAdvance();
+			getChar(text.charAt(i)).draw(x + advance, y);
+			advance += getChar(text.charAt(i)).getXAdvance();
 		}
 	}
 	
@@ -91,10 +91,18 @@ public class GameFont {
 		setSize(defaultSize);
 	}
 	
+	public Glyph getChar(Character c) {
+		if(glyphs.containsKey(c)) {
+			return glyphs.get(c);
+		}
+		
+		return glyphs.get(' ');
+	}
+	
 	public float getWidth(String text) {
 		float width = 0;
 		for(int i = 0; i<text.length(); i++) {
-			width += glyphs.get(text.charAt(i)).getXAdvance();
+			width += getChar(text.charAt(i)).getXAdvance();
 		}
 		
 		return width;
@@ -103,8 +111,8 @@ public class GameFont {
 	public float getHeight(String text) {
 		float height = 0f;
 		for(int i = 0; i<text.length(); i++) {
-			if(glyphs.get(text.charAt(i)).getLineHeight() > height) {
-				height = glyphs.get(text.charAt(i)).getLineHeight();
+			if(getChar(text.charAt(i)).getLineHeight() > height) {
+				height = getChar(text.charAt(i)).getLineHeight();
 			}
 		}
 		
