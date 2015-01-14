@@ -12,6 +12,7 @@ import core.Theater;
 import core.network.packets.CardMovePacket;
 import core.network.packets.ChatPacket;
 import core.network.packets.ConnectedUsersPacket;
+import core.network.packets.GameOverPacket;
 import core.network.packets.GreetPacket;
 import core.setups.GameSetup;
 import core.setups.ServerLobby;
@@ -72,7 +73,7 @@ public class Client extends Thread {
 			}
 		}
 		
-		System.out.println("Are we listening? " + listening);
+		//System.out.println("Are we listening? " + listening);
 		
 		if(listening) {
 			// Send client name to server to greet
@@ -161,6 +162,8 @@ public class Client extends Thread {
 		} else if(packet instanceof ChatPacket) {
 			// TODO Chat processing for special commands? /kick and stuff?
 			((Stage) setup).getChat().addMessage(((ChatPacket) packet).getMessage());
+		} else if(packet instanceof GameOverPacket) {
+			((Stage) setup).openGameOverMenu(((GameOverPacket) packet).getWinner());
 		}
 	}
 	
@@ -228,6 +231,10 @@ public class Client extends Thread {
 		if(setup instanceof Stage) {
 			((Stage) setup).setSeat(seatNumber);
 		}
+	}
+	
+	public int getSeatNumber() {
+		return seatNumber;
 	}
 	
 	public boolean isConnected() {

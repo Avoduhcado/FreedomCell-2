@@ -11,6 +11,7 @@ import core.network.packets.ChatPacket;
 import core.network.packets.CloseServerPacket;
 import core.network.packets.ConnectedUsersPacket;
 import core.network.packets.DisconnectClientPacket;
+import core.network.packets.GameOverPacket;
 import core.network.packets.GameStartPacket;
 import core.network.packets.GreetPacket;
 
@@ -77,19 +78,29 @@ public class SocketThread extends Thread {
 	
 	public void readPacket(Packet packet) {
 		if(packet instanceof GreetPacket) {
-			setClientName(((GreetPacket) packet).getClientName().matches("Client") ?
-					server.sortName(clientNumber) : ((GreetPacket) packet).getClientName());
-			System.out.println("Server: " + getClientName() + " has connected.");
-			server.broadcast(new ConnectedUsersPacket(clientNumber, server.getClientNames()), null);
+			if(server.getTable() == null) {
+				setClientName(((GreetPacket) packet).getClientName().matches("Client") ?
+						server.sortName(clientNumber) : ((GreetPacket) packet).getClientName());
+				System.out.println("Server: " + getClientName() + " has connected.");
+				server.broadcast(new ConnectedUsersPacket(clientNumber, server.getClientNames()), null);
+			} else {
+				terminate();
+			}
 		} else if(packet instanceof GameStartPacket) {
 			server.startGame(((GameStartPacket) packet).getSeed());
 		} else if(packet instanceof CardMovePacket) {
 			server.getTable().getStack(((CardMovePacket) packet).getMoveTo()).addCard(
 					server.getTable().getStack(((CardMovePacket) packet).getToMove()).getCards().removeLast());
 			server.broadcast(packet, this);
+			if(server.getTable().checkWin()) {
+				server.broadcast(new GameOverPacket(clientName), null);
+			}
 		} else if(packet instanceof ChatPacket) {
 			server.broadcast(new ChatPacket("corange>" + clientName + "<cwhite>: " + ((ChatPacket) packet).getMessage()), null);
 		} else if(packet instanceof DisconnectClientPacket) {
+			if(clientNumber == 0) {
+				server.closeServer();
+			}
 			terminate();
 		} else if(packet instanceof CloseServerPacket) {
 			server.closeServer();

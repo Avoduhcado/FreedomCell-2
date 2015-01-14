@@ -64,7 +64,7 @@ public class ServerLobby extends GameSetup {
 	private boolean fading = true;
 	private float fadeTimer;
 	
-	public ServerLobby() {
+	public ServerLobby() {		
 		inputs = new ElementGroup();
 		
 		join = new Button("Join Server", Camera.get().getDisplayWidth(0.15f), Camera.get().getDisplayHeight(0.075f), 0, null);
@@ -199,24 +199,26 @@ public class ServerLobby extends GameSetup {
 				if(hostLocal.isChecked()) {
 					Server server = new Server(8080);
 					server.start();
-					
+
 					client = new Client("localhost", 8080, name.getText(), this);
 					client.start();
 				} else {
 					Server server = new Server(Integer.parseInt(hostPort.getText()));
 					server.start();
-					
+
 					client = new Client(hostIP.getText(), Integer.parseInt(hostPort.getText()), name.getText(), this);
 					client.start();
 				}
-				
+
 				timeout = 0f;
 				starting = true;
 				inputs.setEnabledAll(false);
 			} else {
 				join.setEnabled(true);
 				connectedUsers = null;
-				client.sendData(new CloseServerPacket());
+				if(client != null && client.isConnected()) {
+					client.sendData(new CloseServerPacket());
+				}
 				client = null;
 				host = false;
 			}
@@ -224,7 +226,7 @@ public class ServerLobby extends GameSetup {
 		hostLocal.update();
 		hostGame.update();
 		if(hostGame.isClicked() && hostGame.isEnabled()) {
-			if(client.isConnected()) {
+			if(client != null && client.isConnected()) {
 				client.sendData(new GameStartPacket(getSeed()));
 			}
 		}
@@ -285,11 +287,8 @@ public class ServerLobby extends GameSetup {
 				client = null;
 				System.out.println("Client failed to connect");
 				connectedUsers = null;
-				if(join.isEnabled()) {
-					hostLobby.setEnabled(true);
-				} else if(hostLobby.isEnabled()) {
-					join.setEnabled(true);
-				}
+				hostLobby.setEnabled(true);
+				join.setEnabled(true);
 			} else if(client.isConnected() && starting) {
 				starting = false;
 			} else if(!client.isConnected() && starting) {

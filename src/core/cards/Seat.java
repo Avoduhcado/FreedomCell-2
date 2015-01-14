@@ -65,6 +65,16 @@ public class Seat implements Serializable {
 		
 		return true;
 	}
+	
+	public boolean hasFullFoundations() {
+		for(CardStack c : foundations) {
+			if(c.getTopCard().getRank() != 12) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
 
 	public Cascade[] getCascades() {
 		return cascades;

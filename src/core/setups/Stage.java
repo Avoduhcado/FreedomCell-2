@@ -14,6 +14,7 @@ import core.network.packets.CardMovePacket;
 import core.render.DrawUtils;
 import core.ui.overlays.Chatlog;
 import core.ui.overlays.GameMenu;
+import core.ui.overlays.GameOverMenu;
 import core.utilities.keyboard.Keybinds;
 import core.utilities.mouse.MouseInput;
 import core.utilities.text.Text;
@@ -21,6 +22,7 @@ import core.utilities.text.Text;
 public class Stage extends GameSetup {
 	
 	private GameMenu gameMenu;
+	private GameOverMenu gameOverMenu;
 	
 	private int seat;
 	private Table table;
@@ -39,13 +41,19 @@ public class Stage extends GameSetup {
 	
 	@Override
 	public void update() {
-		if(gameMenu != null) {
+		if(table != null) {
+			table.update();
+		}
+		
+		if(gameOverMenu != null) {
+			gameOverMenu.update();
+		} else if(gameMenu != null) {
 			gameMenu.update();
 			if(gameMenu.isCloseRequest())
 				gameMenu = null;
 		} else {
 			if(table != null) {
-				table.update();
+				//table.update();
 				
 				if(selectedCard == null) {
 					table.processHighlights();
@@ -54,18 +62,18 @@ public class Stage extends GameSetup {
 				}
 			}
 			
-			if(chat.isActive()) {
-				if(chat.isCloseRequest()) {
-					chat.close();
-				}
-				chat.update();
-			} else if(Keybinds.CONFIRM.clicked()) {
-				chat.open();
-			}
-			
 			if(Keybinds.EXIT.clicked()) {
 				gameMenu = new GameMenu(20f, 20f, "Menu2");
 			}
+		}
+		
+		if(chat.isActive()) {
+			if(chat.isCloseRequest()) {
+				chat.close();
+			}
+			chat.update();
+		} else if(Keybinds.CONFIRM.clicked()) {
+			chat.open();
 		}
 		
 		if(!client.isConnected()) {
@@ -119,6 +127,11 @@ public class Stage extends GameSetup {
 		if(gameMenu != null) {
 			DrawUtils.fillColor(0f, 0f, 0f, 0.45f);
 			gameMenu.draw();
+		}
+		
+		if(gameOverMenu != null) {
+			DrawUtils.fillColor(0f, 0f, 0f, 0.45f);
+			gameOverMenu.draw();
 		}
 	}
 
@@ -188,6 +201,10 @@ public class Stage extends GameSetup {
 		}
 		
 		selectedCard = null;
+	}
+	
+	public void openGameOverMenu(String winner) {
+		gameOverMenu = new GameOverMenu(Float.NaN, Camera.get().getDisplayHeight(0.2f), "Menu2", winner);
 	}
 
 	public int getSeat() {

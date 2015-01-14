@@ -121,6 +121,16 @@ public class Table implements Serializable {
 		return null;
 	}
 	
+	public boolean checkWin() {
+		for(int s = 0; s<seats.length; s++) {
+			if(seats[s].hasFullFoundations()) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
 	public void processHighlights() {
 		for(CardStack c : cells) {
 			if(c.getTopCard() != null && c.getTopCard().isHovering()) {

@@ -41,7 +41,7 @@ public class Theater {
 	/** Doubly current FPS? */
 	private int currentfps = Camera.TARGET_FPS;
 	/** Game version, appears in Window Title */
-	public static String version = "v0.9";
+	public static String version = "v1.0";
 	/** Game name, appears in Window Title */
 	public static String title = "FreedomCell";
 	/** Current engine framework version */
