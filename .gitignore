@@ -17,6 +17,14 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# Superfluous files/folders
+/bin
+/.git
+/.settings
+.classpath
+.project
+config
+
 # =========================
 # Operating System Files
 # =========================
