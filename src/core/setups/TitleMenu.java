@@ -46,8 +46,8 @@ public class TitleMenu extends GameSetup {
 		buttonGroup.addButton(new Button("Exit"));
 		
 		// Play title track
-		Ensemble.get().setBackground(new Track("Menu"));
-		Ensemble.get().getBackground().play();
+		//Ensemble.get().setBackground(new Track("Menu"));
+		//Ensemble.get().getBackground().play();
 	}
 	
 	@Override

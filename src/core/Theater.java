@@ -124,13 +124,16 @@ public class Theater {
 		}
 		
 		if(getSetup() instanceof Stage && ((Stage) getSetup()).getClient().isConnected()) {
-			((Stage) getSetup()).getClient().sendData(new CloseServerPacket());
+			//((Stage) getSetup()).getClient().sendData(new CloseServerPacket());
+			((ServerLobby) getSetup()).getClient().sendData(new DisconnectClientPacket());
 		} else if(getSetup() instanceof ServerLobby && ((ServerLobby) getSetup()).getClient() != null
 				&& ((ServerLobby) getSetup()).getClient().isConnected()) {
-			if(((ServerLobby) getSetup()).isHost())
+			if(((ServerLobby) getSetup()).isHost()) {
 				((ServerLobby) getSetup()).getClient().sendData(new CloseServerPacket());
-			else
+			}
+			else {
 				((ServerLobby) getSetup()).getClient().sendData(new DisconnectClientPacket());
+			}
 		}
 		Ensemble.get().close();
 		Camera.get().close();

@@ -289,15 +289,19 @@ public class ServerLobby extends GameSetup {
 				connectedUsers = null;
 				hostLobby.setEnabled(true);
 				join.setEnabled(true);
-			} else if(client.isConnected() && starting) {
-				starting = false;
 			} else if(!client.isConnected() && starting) {
 				timeout += Theater.getDeltaSpeed(0.025f);
 				if(timeout > 5f) {
 					starting = false;
 				}
 			}
-		}
+		} else if(client != null && client.isConnected() && starting) {
+			starting = false;
+			
+			if(isClientHostingRemote()) {
+				hostGame.setEnabled(true);
+			}
+		} 
 	}
 
 	@Override
@@ -347,7 +351,11 @@ public class ServerLobby extends GameSetup {
 	public void resizeRefresh() {
 
 	}
-	
+
+	private boolean isClientHostingRemote() {
+		return client.isConnected() && client.getSeatNumber() == 0;
+	}
+
 	public void fade() {
 		if(fading) {
 			if(fadeTimer < 5f) {
